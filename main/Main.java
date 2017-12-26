@@ -8,13 +8,13 @@ import node.Node;
 import node.NodeConnection;
 
 class Main {
-    private int numNodes = 50;
+    private int numNodes = 12;
     private List<Node> nodes = new ArrayList<>();
     private List<NodeConnection> connections = new ArrayList<>();
-    //private Gui gui = new Gui();
+    private Gui gui;
     
     public Main(){
-        Gui gui = new Gui();
+        gui = new Gui();
         gui.start();
         
         //main nodes
@@ -31,7 +31,7 @@ class Main {
         }
         gui.setNodes(nodes);
         
-        
+        /*
         //make random connections
         for(int x = 0; x < nodes.size(); x++){
             boolean gotNode = false;
@@ -87,29 +87,37 @@ class Main {
             }
         }
         
+        */
         
+        //makeConnections(1);
+        makeConnections(3);
         
-        //makeConnections(2);
-        connections.clear();
-        connections.addAll(getConnections());
-        gui.setConnections(connections);
         
         System.out.println("Nodes: " + nodes.size());
         System.out.println("Connections: " + connections.size());
     }
     
     private void makeConnections(int num){
-        for(int y = 1; y <= num; y++){
+        //num *= 2;
+        if(num > nodes.size()-1 || nodes.size() % num != 0){
+           return;
+        }
+        
+        for(int y = 1; y < num+1; y++){
+            int yy = y - 1;
+            System.out.println("Y="+y);
             
             for(int x = 0; x < nodes.size(); x++){
+                System.out.println("X="+x);
                 boolean gotNode = false;
                 Node n = null;
                 
                 do{
                     boolean all = true;
+                    
                     for(Node node: nodes){
                         
-                        if(node.getConnected().size() < num){
+                        if(node.getConnected().size() == yy){
                             all = false;
                         }
                     }
@@ -119,18 +127,32 @@ class Main {
                     }
 
                     int r = new Random().nextInt(nodes.size());
-                    if(r != x && nodes.get(r).getConnected().size() == y-1 &&
+                    
+                    
+                    if(r != x && nodes.get(r).getConnected().size() == yy &&
                             !nodes.get(x).getConnected().contains(nodes.get(r))){
+                        
                         n = nodes.get(r);
                         gotNode = true;
                     }
+                    
+                    System.out.println("GOTNODE-"+gotNode + " - " + n);
                 }while(!gotNode);
 
-                if(nodes.get(x).getConnected().size() == num){
+                if(nodes.get(x).getConnected().size() == yy){
+                    System.out.println("CONNECTING NODES:" + nodes.get(x) + " NODE:" + n.getId());
                     nodes.get(x).addConnected(n);
+                    
+                    
                 }
+                //y++;
+                //System.out.println("Y="+y);
             }
         }
+        
+        connections.clear();
+        connections.addAll(getConnections());
+        gui.setConnections(connections);
     }
     private List<NodeConnection> getConnections(){
         List<NodeConnection> cn = new ArrayList<>();
@@ -149,7 +171,7 @@ class Main {
     
     public static void main(String[] args) throws InterruptedException{
         Main main = new Main();
-        int tries = main.nodes.size()*10;
+        int tries = main.nodes.size()*2;
         
         Thread.sleep(1000);
         Node inf = main.nodes.get(new Random().nextInt(main.numNodes));
@@ -189,9 +211,16 @@ class Main {
                 
                 //link not ok
                 if(!rcn.getOk() || (!rcn.getA().getOk() && !rcn.getB().getOk())){
+                    //System.out.println("NETWORK INFECTED");
                     //in = in.getNodeLink().getInfected().get(in.getNodeLink().getInfected().size()-1);
-                    //x++;
+                    x++;
                     break;
+                }
+                if(!rcn.getOk() && (!rcn.getA().getOk() || !rcn.getB().getOk())){
+                    //System.out.println("NETWORK INFECTED");
+                    in = in.getNodeLink().getInfected().get(in.getNodeLink().getInfected().size()-1);
+                    x++;
+                    continue;
                 }
                 
                 Node rn = (Node) in.getConnected().get(rc);
@@ -213,16 +242,19 @@ class Main {
                 in = in.getNodeLink().getInfected().get(in.getNodeLink().getInfected().size()-1); 
             }
         }
-        if(success){
-            System.out.println("SUCCESSFUL INFECTION!");
-        }else{
-            System.out.println("NOT SUCCESSFUL!");
-        }
+        
+        
+        
         List<Node> nds = new ArrayList<>();
         for(Node n: main.nodes){
             if(!n.getOk()){
                 nds.add(n);
             }
+        }
+        if(nds.size() == main.numNodes){
+            System.out.println("SUCCESSFUL INFECTION!");
+        }else{
+            System.out.println("NOT SUCCESSFUL!");
         }
         System.out.println("INFECTED: " + nds.size() + "\n NODES:" + nds);
         

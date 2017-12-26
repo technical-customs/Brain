@@ -57,9 +57,24 @@ public class NodeConnection{
             if(!a.getOk() && !b.getOk()){
                 return Color.red;
             }
-            return (ok) ? Color.green : Color.red ; 
+            try {
+                //Thread.sleep(100);
+            } catch (Exception ex) {}
+            return (ok) ? Color.green : getErrorColor() ; 
         }
         return connectionColor;
+    }
+    private Color tmpC = Color.red;
+    private Color getErrorColor(){
+        if(tmpC.equals(Color.red)){
+            tmpC = Color.white;
+            return tmpC;
+        }
+        if(tmpC.equals(Color.white)){
+            tmpC = Color.red;
+            return tmpC;
+        }
+        return tmpC;
     }
     public void drawNodeConnection(Graphics2D graphics){
         graphics.setColor(getConnectionColor());
