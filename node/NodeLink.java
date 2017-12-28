@@ -96,19 +96,25 @@ public class NodeLink {
     }
     
     private void nodeBattle(NodeConnection nc, Node n){
+         
         new Thread(new Runnable(){
             @Override
             public void run(){
-                boolean win = false;
-                try {
-                    //Thread.sleep(1000);
-                } catch (Exception ex) {}
                 
-                for(int x = 0; x < n.diff; x++){
+                boolean win = false;
+                
+                
+                
+                nc.setOk(false);
+                int w = 0;
+                do{
+                    
                     try {
                         Thread.sleep(100);
                     } catch (Exception ex) {}
                     
+                    node.setWeight(new Random().nextInt());
+                    n.setWeight(new Random().nextInt());
                     int a = node.getWeight();
                     int b = n.getWeight();
                     
@@ -118,32 +124,32 @@ public class NodeLink {
                     if(a > b){
                         win = true;
                         n.setOk(false);
+                        //nc.setOk(false);
                         //System.out.println("INFECTED NODE WINS");
                         
                     }if(a < b){
                         win = false;
                         n.setOk(true);
+                        //nc.setOk(false);
                         //System.out.println("INFECTED NODE LOSES");
-                    }if(a == b){
-                        
                     }
-                    
-                    
-                    node.setWeight(new Random().nextInt());
-                    n.setWeight(new Random().nextInt());
-                }
-                
+                    w++;
+                        
+                }while(w < n.diff);
+                try {
+                    //Thread.sleep(1000);
+                } catch (Exception ex) {}
                 if(win){
                     //System.out.println("NODE:" + n.getId() + " INFECTED");
                     infected.add(n);
                     n.getNodeLink().getInfected().add(node);
                     
-                    n.setOk(false);
                     nc.setOk(false);
                 }else{
-                    n.setOk(true);
+                    //fight back
                     nc.setOk(true);
                 }
+                nc.checkOk();
             }
         }).start();
         
@@ -154,33 +160,26 @@ public class NodeLink {
         for(Object obj: node.getConnections()){
             NodeConnection nc = (NodeConnection) obj;
             
+            if(!nc.getOk()){
+                continue;
+            }
+            
             if(nc.getA().equals(n)){
-                nc.setOk(false);
-                
                 //link is not infected
                 if(nc.getA().getOk()){
-                    //init nodebattle
-                    
-                    //infect both ends
-                    //link connection checking algorithm needed
-                    nc.getA().getNodeLink().infectLink(node);
+                    //nc.setInfectedStatus();
                     
                     nodeBattle(nc,nc.getA());
+                    break;
                 }
             }
             if(nc.getB().equals(n)){
-                nc.setOk(false);
-                
                 //link is not infected
                 if(nc.getB().getOk()){
-                    //init nodebattle
-                    
-                    //infect both ends
-                    //link connection checking algorithm needed
-                    nc.getB().getNodeLink().infectLink(node);
+                    //nc.setInfectedStatus();
                     nodeBattle(nc,nc.getB());
+                    break;
                 }
-                
             }
         }
     }

@@ -1,13 +1,10 @@
 package node;
 
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class NodeConnection{
     //will make it for many connections or limited amount of nodes
@@ -24,13 +21,13 @@ public class NodeConnection{
         ok = true;
     }
     
-    public synchronized Node getA(){
+    public Node getA(){
         return a;
     }
     public void setA(Node a){
         this.a = a;
     }
-    public synchronized Node getB(){
+    public Node getB(){
         return b;
     }
     public void setB(Node b){
@@ -47,21 +44,40 @@ public class NodeConnection{
     public void setOk(boolean ok){
         this.ok = ok;
     }
-    public synchronized boolean getOk(){
+    public boolean getOk(){
         return ok;
     }
     
+    public void checkOk(){
+        if(!a.getOk() && !b.getOk()){
+            ok = false;
+        }else{
+            ok = true;
+        }
+            
+    }
+    public boolean checkConnection(Node a, Node b){
+        return (this.a.equals(a) && this.b.equals(b)) || (this.a.equals(b) && this.b.equals(a));    
+    }
+        
     
     private Color getConnectionColor(){
-        if(a != null && b != null){
-            if(!a.getOk() && !b.getOk()){
+        //if(a != null && b != null){
+        
+            if((!a.getOk() && !b.getOk())){
+                //ok = false;
                 return Color.red;
+                //ok = false;
+            }else if(!ok && (!a.getOk() || !b.getOk()) ){
+                //ok = true;
+                return Color.red;
+                //ok = false;
+            }else if(ok){
+                return Color.green;
+                //ok = false;
             }
-            try {
-                //Thread.sleep(100);
-            } catch (Exception ex) {}
-            return (ok) ? Color.green : getErrorColor() ; 
-        }
+            //return (ok) ? Color.green : getErrorColor() ; 
+        //}
         return connectionColor;
     }
     private Color tmpC = Color.red;
@@ -76,8 +92,15 @@ public class NodeConnection{
         }
         return tmpC;
     }
+    
+    
+    
     public void drawNodeConnection(Graphics2D graphics){
+        
         graphics.setColor(getConnectionColor());
+        
+        
+        
         if(a != null && b != null){
             int ahw =  a.getNodeLink().getX()+(10/2);
             int ahh =  a.getNodeLink().getY()+(10/2);

@@ -12,7 +12,7 @@ public class Node<T extends Comparable<T>>{
     * Node for Linked Lists, Search Trees,
     */
     
-    public int diff = new Random().nextInt(190)+10;//difficulty of node easy = 50 , hard = 500
+    public int diff = new Random().nextInt(80)+20;//difficulty of node easy = 50 , hard = 500
     private int weight = new Random().nextInt();
     private T value = null;
     private Node<T> prev = null;
@@ -27,10 +27,11 @@ public class Node<T extends Comparable<T>>{
     private Node<T> leftChild = null;
     private Node<T> rightChild = null;
     
+    private Color nodeColor = Color.white;
     private List<Node> connected;
     private List<NodeConnection> connections;
     private int id ;
-    private volatile boolean ok;
+    private boolean ok;
     private NodeLink nl;
     
     public Node(int id){
@@ -39,12 +40,18 @@ public class Node<T extends Comparable<T>>{
         this.id = id;
         ok = true;
         nl = new NodeLink(this);
-    }
-    public Node(T value){
-        super();
-        this.value = value;
+        
     }
     
+    public void randColor(){
+        nodeColor = new Color(new Random().nextInt(255),new Random().nextInt(255),new Random().nextInt(255));
+    }
+    public void setNodeColor(Color nodeColor){
+        this.nodeColor = nodeColor;
+    }
+    public Color getNodeColor(){
+        return nodeColor;
+    }
     public int getWeight(){
         return weight;
     }
@@ -98,6 +105,23 @@ public class Node<T extends Comparable<T>>{
         if(connections.contains(connection)){
             connections.remove(connection);
         }
+    }
+    public void checkConnections(){
+        for(Node n: connected){
+            //if(node.equals(n)){
+                for(NodeConnection nc: connections){
+                    if(nc.checkConnection(n, nc.getA()) || nc.checkConnection(n, nc.getB())){
+                        if(nc.getA().getOk() && nc.getB().getOk()){
+                            ok = false;
+                        }else if( (!nc.getA().getOk() && nc.getB().getOk()) || (nc.getA().getOk() && !nc.getB().getOk()) ){
+                            ok = true;
+                        }
+                    }
+                }
+                //return true;
+            //}
+        }
+        //return false;
     }
     
     public NodeLink getNodeLink(){
