@@ -103,9 +103,6 @@ public class NodeLink {
                 
                 boolean win = false;
                 
-                
-                
-                nc.setOk(false);
                 int w = 0;
                 do{
                     
@@ -118,29 +115,22 @@ public class NodeLink {
                     int a = node.getWeight();
                     int b = n.getWeight();
                     
-                    //System.out.println("INFECTED NODE: " + a);
-                    //System.out.println("VICTIM NODE: " + b);
-                    
                     if(a > b){
                         win = true;
                         n.setOk(false);
-                        //nc.setOk(false);
-                        //System.out.println("INFECTED NODE WINS");
                         
                     }if(a < b){
                         win = false;
                         n.setOk(true);
-                        //nc.setOk(false);
-                        //System.out.println("INFECTED NODE LOSES");
                     }
                     w++;
                         
                 }while(w < n.diff);
+                
                 try {
                     //Thread.sleep(1000);
                 } catch (Exception ex) {}
                 if(win){
-                    //System.out.println("NODE:" + n.getId() + " INFECTED");
                     infected.add(n);
                     n.getNodeLink().getInfected().add(node);
                     
@@ -165,18 +155,13 @@ public class NodeLink {
             }
             
             if(nc.getA().equals(n)){
-                //link is not infected
                 if(nc.getA().getOk()){
-                    //nc.setInfectedStatus();
-                    
                     nodeBattle(nc,nc.getA());
                     break;
                 }
             }
             if(nc.getB().equals(n)){
-                //link is not infected
                 if(nc.getB().getOk()){
-                    //nc.setInfectedStatus();
                     nodeBattle(nc,nc.getB());
                     break;
                 }
