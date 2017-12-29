@@ -6,12 +6,14 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.SwingUtilities;
 
 public class NodeLink {
     private Node node;
+    private Color nodeColor = Color.yellow;
     private volatile List<Node> infected;
     private int x,y,z;
 
@@ -95,8 +97,9 @@ public class NodeLink {
         
     }
     
-    private void nodeBattle(NodeConnection nc, Node n){
-         
+    private boolean nodeBattle(NodeConnection nc, Node n){
+        final CountDownLatch latch = new CountDownLatch(1);
+        final boolean[] bool = new boolean[1];
         new Thread(new Runnable(){
             @Override
             public void run(){
@@ -117,11 +120,11 @@ public class NodeLink {
                     
                     if(a > b){
                         win = true;
-                        n.setOk(false);
+                        //n.setOk(false);
                         
                     }if(a < b){
                         win = false;
-                        n.setOk(true);
+                        //n.setOk(true);
                     }
                     w++;
                         
@@ -134,15 +137,48 @@ public class NodeLink {
                     infected.add(n);
                     n.getNodeLink().getInfected().add(node);
                     
-                    nc.setOk(false);
+                    //nc.setOk(false);
+                    bool[0] = true;
                 }else{
                     //fight back
-                    nc.setOk(true);
+                    bool[0] = false;
+                    //nc.setOk(true);
                 }
                 nc.checkOk();
+                latch.countDown();
             }
         }).start();
-        
+        try {
+            latch.await();
+            System.out.println("NODE BATTLE RESULT: " + bool[0]);
+            return bool[0];
+        } catch (InterruptedException ex) {
+            return false;
+        }
+    }
+    
+    private void fightInfection(Node node){
+        if(!node.getOk()){
+            //fight random connection
+            int rn = new Random().nextInt(node.getConnected().size());
+            boolean pass = false;
+            
+            do{
+                Node n = (Node) node.getConnected().get(rn);
+                if(!n.getOk()){
+                    for(Object obj: node.getConnections()){
+                        NodeConnection nc = (NodeConnection)obj;
+                        
+                        if(nc.checkConnection(node, n) && !nc.getOk()){
+                            //fight this node and connection
+                            //sever connection or take over computer, put in 
+                            //list of severed connections
+                        }
+                    }
+                }
+            }while(!pass);
+            
+        }
     }
     
     public void infectLink(Node n){
@@ -156,25 +192,90 @@ public class NodeLink {
             
             if(nc.getA().equals(n)){
                 if(nc.getA().getOk()){
-                    nodeBattle(nc,nc.getA());
+                    nc.setOk(false);
+                    nc.getA().setOk(false);
+                    nc.getA().infecting = true;
+                    
+                    boolean b = nodeBattle(nc,nc.getA());
+                   
+                    nc.setOk(!b);
+                    nc.getA().setOk(!b);
+                    nc.getA().infecting = false;
                     break;
                 }
             }
             if(nc.getB().equals(n)){
                 if(nc.getB().getOk()){
-                    nodeBattle(nc,nc.getB());
+                    
+                    nc.setOk(false);
+                    nc.getB().setOk(false);
+                    nc.getB().infecting = true;
+                    
+                    boolean b = nodeBattle(nc,nc.getB());
+                    nc.setOk(!b);
+                    nc.getB().setOk(!b);
+                    nc.getB().infecting = false;
+                    
                     break;
                 }
             }
         }
     }
-    public void drawNodeLink(Graphics2D graphics){
-        if(node.getOk()){
-            graphics.setColor(Color.yellow);
-        }else{
-            graphics.setColor(Color.red);
-            //get a random link and infect it
+    
+    
+    private Color getNodeColor(){
+            if(!node.infecting && !node.getOk()){
+                //ok = false;
+                return Color.red;
+                //ok = false;
+            }if(!node.getOk() && node.infecting ){
+                //ok = true;
+                return getErrorColor();
+            }else if(node.getOk()){
+                return Color.yellow;
+            }
+        return nodeColor;
+    }
+    private Color tmpC = Color.red;
+    private Color getErrorColor(){
+        final Color c = tmpC;
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Color[] color = new Color[1];
+        
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                
+                
+                if(tmpC.equals(Color.red)){
+                    color[0] = Color.white;
+                    
+                }
+                if(tmpC.equals(Color.white)){
+                    color[0] = Color.red;
+                    
+                }
+                try {
+                    //Thread.sleep(10);
+                } catch (Exception ex) {}
+                latch.countDown();
+            }
+        }).start();
+        
+        try {
+            latch.await();
+            tmpC = color[0];
+            Thread.sleep(100);
+            return tmpC;
+            
+        } catch (InterruptedException ex) {
+            Logger.getLogger(NodeConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
+        return tmpC;
+    }
+    public void drawNodeLink(Graphics2D graphics){
+        
+        graphics.setColor(getNodeColor());
         
         graphics.fillOval(x, y, 10, 10);
         

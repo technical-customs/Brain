@@ -5,6 +5,9 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class NodeConnection{
     //will make it for many connections or limited amount of nodes
@@ -64,15 +67,17 @@ public class NodeConnection{
     private Color getConnectionColor(){
         //if(a != null && b != null){
         
-            if((!a.getOk() && !b.getOk())){
-                //ok = false;
-                return Color.red;
-                //ok = false;
-            }else if(!ok && (!a.getOk() || !b.getOk()) ){
+            
+            if(!ok && ( (a.infecting && !a.getOk()) || (b.infecting && !b.getOk()) )){
                 //ok = true;
+                return getErrorColor();
+                //ok = false;
+            }else if(!ok || ( (!a.infecting && !a.getOk()   ) &&  (!b.infecting && !b.getOk()   ) )){
+                //ok = false;
                 return Color.red;
                 //ok = false;
-            }else if(ok){
+            }
+            if(ok){
                 return Color.green;
                 //ok = false;
             }
@@ -82,13 +87,38 @@ public class NodeConnection{
     }
     private Color tmpC = Color.red;
     private Color getErrorColor(){
-        if(tmpC.equals(Color.red)){
-            tmpC = Color.white;
+        final Color c = tmpC;
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Color[] color = new Color[1];
+        
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                
+                
+                if(tmpC.equals(Color.red)){
+                    color[0] = Color.white;
+                    
+                }
+                if(tmpC.equals(Color.white)){
+                    color[0] = Color.red;
+                    
+                }
+                try {
+                    //Thread.sleep(10);
+                } catch (Exception ex) {}
+                latch.countDown();
+            }
+        }).start();
+        
+        try {
+            latch.await();
+            tmpC = color[0];
+            Thread.sleep(100);
             return tmpC;
-        }
-        if(tmpC.equals(Color.white)){
-            tmpC = Color.red;
-            return tmpC;
+            
+        } catch (InterruptedException ex) {
+            Logger.getLogger(NodeConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
         return tmpC;
     }

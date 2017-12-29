@@ -12,8 +12,8 @@ import node.NodeConnection;
 
 class Main {
     private int numCon = 3; 
-    private int numNodes = 30;
-    private int tries = 50;
+    private int numNodes = 10;
+    private int tries = 2;
     
     
     private List<Node> nodes = new ArrayList<>();

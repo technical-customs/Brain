@@ -32,6 +32,7 @@ public class Node<T extends Comparable<T>>{
     private List<NodeConnection> connections;
     private int id ;
     private boolean ok;
+    public boolean infecting;
     private NodeLink nl;
     
     public Node(int id){

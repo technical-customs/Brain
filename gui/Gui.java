@@ -107,11 +107,11 @@ public class Gui extends Screen{
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         
         draw(g2);
-        
+        g2.dispose();
         repaint();
     }
     
-    private synchronized void draw(Graphics2D g2){
+    private void draw(Graphics2D g2){
         //game draws
         for(Node n: nodes){
             n.getNodeLink().drawNodeLink(g2);
