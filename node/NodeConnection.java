@@ -71,20 +71,22 @@ public class NodeConnection{
         new Thread(new Runnable(){
             @Override
             public void run(){
+                //a.checkConnections();
+                //b.checkConnections();
             if(!ok && ( (a.infecting && !a.getOk()) || (b.infecting && !b.getOk()) )){
                 //ok = true;
-                //color[0] = getErrorColor();
+                color[0] = getErrorColor();
                 //ok = false;
             }else if(!ok || ( (!a.infecting && !a.getOk()   ) &&  (!b.infecting && !b.getOk()   ) )){
                 //ok = false;
-                //color[0] =  Color.red;
+                color[0] =  Color.red;
                 //ok = false;
-            }else if(ok){
-                //color[0] =  Color.green;
+            }else if(ok || (a.recovered && b.recovered)){
+                color[0] =  Color.green;
                 //ok = false;
             }
             
-            color[0] = (ok) ? Color.green : Color.red ;
+            //color[0] = (ok) ? Color.green : Color.red ;
             latch.countDown();
         //}
         }
@@ -127,7 +129,7 @@ public class NodeConnection{
         try {
             latch.await();
             tmpC = color[0];
-            Thread.sleep(10);
+            //Thread.sleep(10);
             return tmpC;
             
         } catch (InterruptedException ex) {

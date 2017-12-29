@@ -6,13 +6,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Node<T extends Comparable<T>>{
     /*
     * Node for Linked Lists, Search Trees,
     */
-    
-    public int diff = new Random().nextInt(1)+10;//difficulty of node easy = 50 , hard = 500
+    public int HIGHDIF = 100, LOWDIF = 20;
+    public int diff = new Random().nextInt(HIGHDIF - LOWDIF)+LOWDIF;//difficulty of node easy = 50 , hard = 500
     private int weight = new Random().nextInt();
     private T value = null;
     private Node<T> prev = null;
@@ -32,7 +35,11 @@ public class Node<T extends Comparable<T>>{
     private List<NodeConnection> connections;
     private int id ;
     private boolean ok;
-    public boolean infecting;
+    
+    public volatile boolean infecting;
+    public volatile boolean recovering;
+    public volatile boolean recovered;
+    
     private NodeLink nl;
     
     public Node(int id){
@@ -40,6 +47,10 @@ public class Node<T extends Comparable<T>>{
         connections = new ArrayList<>();
         this.id = id;
         ok = true;
+        infecting = false;
+        recovering = false;
+        recovered = false;
+        
         nl = new NodeLink(this);
         
     }
@@ -118,25 +129,65 @@ public class Node<T extends Comparable<T>>{
     public void checkConnections(){
         for(Node n: connected){
             //if(node.equals(n)){
-                for(NodeConnection nc: connections){
-                    if(nc.checkConnection(n, nc.getA()) || nc.checkConnection(n, nc.getB())){
-                        if(nc.getA().getOk() && nc.getB().getOk()){
-                            ok = false;
-                        }else if( (!nc.getA().getOk() && nc.getB().getOk()) || (nc.getA().getOk() && !nc.getB().getOk()) ){
-                            ok = true;
-                        }
-                    }
+            if(connections.contains(getConnection(n))){
+                NodeConnection nc = n.getConnection(this);
+                    
+                
+                if(nc.getA().getOk() && nc.getB().getOk()){
+                    ok = false;
+                }else if( (!nc.getA().getOk() && nc.getB().getOk()) || (nc.getA().getOk() && !nc.getB().getOk()) ){
+                    ok = true;
                 }
+                if(nc.getA().recovered && nc.getB().recovered){
+                    nc.setOk(true);
+                }
+                
+                
+            }else if(n.getConnections().contains(this)){
+                NodeConnection nc = n.getConnection(this);
+                
+                if(nc.getA().getOk() && nc.getB().getOk()){
+                    ok = false;
+                }else if( (!nc.getA().getOk() && nc.getB().getOk()) || (nc.getA().getOk() && !nc.getB().getOk()) ){
+                    ok = true;
+                }else if(nc.getA().recovered && nc.getB().recovered){
+                    nc.setOk(true);
+                }
+            }
+            
+                
                 //return true;
             //}
         }
         //return false;
     }
+    public boolean allConnectionsOk(){
+        List<NodeConnection> infected = new ArrayList<>();
+        for(NodeConnection nc: connections){
+            if(!nc.getOk()){
+                infected.add(nc);
+            }
+        }
+        return connections.size() != infected.size();
+    }
+    
+    
+    
     
     public NodeLink getNodeLink(){
         return nl;
     }
     
+    public void setRecovering(boolean recovering){
+        this.recovering = recovering;
+    }
+    public void setRecovered(boolean recovered){
+        this.recovered = recovered;
+        ok = recovered;
+        infecting = false;
+        
+        checkConnections();
+    }
     
     public void setValue(T value){
         this.value = value;

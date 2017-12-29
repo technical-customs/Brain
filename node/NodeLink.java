@@ -14,12 +14,11 @@ import javax.swing.SwingUtilities;
 public class NodeLink {
     private Node node;
     private Color nodeColor = Color.yellow;
-    private volatile List<Node> infected;
     private int x,y,z;
 
     public NodeLink(Node node){
         this.node = node;
-        infected = new ArrayList<>();
+        
     }
     
     public Node getNode() {
@@ -29,9 +28,6 @@ public class NodeLink {
         this.node = node;
     }
 
-    public List<Node> getInfected(){
-        return infected;
-    }
     public int getX() {
         return x;
     }
@@ -53,50 +49,6 @@ public class NodeLink {
         this.z = z;
     }
     
-    public void infectRandomLink(){
-        //create list of nodes to infect
-        List<NodeConnection> toInfect = new ArrayList<>();
-        
-        //get all non infected connections to node
-        for(Object obj: node.getConnections()){
-            NodeConnection connection = (NodeConnection) obj;
-            
-            Node a = connection.getA();
-            Node b = connection.getB();
-            
-            if(!node.equals(a) && a.getOk()){
-                toInfect.add(connection);
-            }
-            if(!node.equals(b) && b.getOk()){
-                toInfect.add(connection);
-            }
-        }
-        
-        System.out.println("To Infect: " + toInfect);
-        
-        int ri = new Random().nextInt(toInfect.size());
-        
-        System.out.println("To Infect index: " + ri);
-        
-        if(node.getConnections().contains(toInfect.get(ri))){
-            int i = node.getConnections().indexOf(toInfect.get(ri));
-            System.out.println("Infecting: " + node.getConnections().get(i));
-            
-            NodeConnection nc = (NodeConnection) node.getConnections().get(i);
-            //nc.setOk(false);
-            
-            Node nca = nc.getA();
-            Node ncb = nc.getB();
-            
-            if(!nca.equals(node)){
-                //nodeBattle(nc,nca);
-            }else if(!ncb.equals(node)){
-                //nodeBattle(nc,ncb);
-            }
-        }
-        
-    }
-    
     private boolean nodeBattle(NodeConnection nc, Node n){
         final CountDownLatch latch = new CountDownLatch(1);
         final boolean[] bool = new boolean[1];
@@ -108,13 +60,13 @@ public class NodeLink {
                 
                 int w = 0;
                 do{
-                    
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(50);
                     } catch (Exception ex) {}
                     
                     node.setWeight(new Random().nextInt());
                     n.setWeight(new Random().nextInt());
+                    
                     int a = node.getWeight();
                     int b = n.getWeight();
                     
@@ -134,8 +86,8 @@ public class NodeLink {
                     //Thread.sleep(1000);
                 } catch (Exception ex) {}
                 if(win){
-                    infected.add(n);
-                    n.getNodeLink().getInfected().add(node);
+                    //infected.add(n);
+                    //n.getNodeLink().getInfected().add(node);
                     
                     //nc.setOk(false);
                     bool[0] = true;
@@ -150,7 +102,7 @@ public class NodeLink {
         }).start();
         try {
             latch.await();
-            Thread.sleep(100);
+            Thread.sleep(50);
             //System.out.println("NODE BATTLE RESULT: " + bool[0]);
             return bool[0];
         } catch (InterruptedException ex) {
@@ -183,7 +135,7 @@ public class NodeLink {
         }
     }
     
-    public void infectLink(Node n){
+    public boolean infectLink(Node n){
         //all connections
         for(Object obj: node.getConnections()){
             NodeConnection nc = (NodeConnection) obj;
@@ -194,7 +146,6 @@ public class NodeLink {
             
             if(nc.getA().equals(n)){
                 if(nc.getA().getOk()){
-                    //nc.setOk(false);
                     if(nc.getA().getConnection(nc.getB()) != null){
                         nc.getA().getConnection(nc.getB()).setOk(false);
                     }else{
@@ -215,12 +166,11 @@ public class NodeLink {
                     nc.setOk(!b);
                     nc.getA().setOk(!b);
                     nc.getA().infecting = false;
-                    break;
+                    return b;
                 }
             }
             if(nc.getB().equals(n)){
                 if(nc.getB().getOk()){
-                    //nc.setOk(false);
                     if(nc.getB().getConnection(nc.getA()) != null){
                         nc.getB().getConnection(nc.getA()).setOk(false);
                     }else{
@@ -242,10 +192,11 @@ public class NodeLink {
                     nc.getB().setOk(!b);
                     nc.getB().infecting = false;
                     
-                    break;
+                    return b;
                 }
             }
         }
+        return false;
     }
     
     
@@ -260,11 +211,16 @@ public class NodeLink {
                     //ok = false;
                     color[0] = Color.red;
                     //ok = false;
-                }if(!node.getOk() && node.infecting ){
+                }else if(!node.getOk() && node.infecting && !node.recovered && !node.recovering){
                     //ok = true;
-                    color[0] = Color.red;
+                    color[0] = getErrorColor();
                 }else if(node.getOk()){
                     color[0] = Color.yellow;
+                }
+                if(node.recovering && !node.recovered){
+                    color[0] = getRecoveryColor();
+                }else if(!node.recovering && node.recovered){
+                    color[0] = Color.blue;
                 }
                 latch.countDown();
             }
@@ -307,13 +263,48 @@ public class NodeLink {
         try {
             latch.await();
             tmpC = color[0];
-            Thread.sleep(100);
+            //Thread.sleep(100);
             return tmpC;
             
         } catch (InterruptedException ex) {
             Logger.getLogger(NodeConnection.class.getName()).log(Level.SEVERE, null, ex);
         }
         return tmpC;
+    }
+    
+    private Color recC = Color.blue;
+    private Color getRecoveryColor(){
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Color[] color = new Color[1];
+        
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                
+                
+                if(recC.equals(Color.blue)){
+                    color[0] = Color.white;
+                    
+                }
+                if(recC.equals(Color.white)){
+                    color[0] = Color.blue;
+                    
+                }
+                try {
+                    //Thread.sleep(10);
+                } catch (Exception ex) {}
+                latch.countDown();
+            }
+        }).start();
+        
+        try {
+            latch.await();
+            recC = color[0];
+            //Thread.sleep(100);
+            return recC;
+            
+        } catch (InterruptedException ex) {}
+        return recC;
     }
     public synchronized void drawNodeLink(Graphics2D graphics){
         

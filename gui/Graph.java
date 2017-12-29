@@ -406,7 +406,7 @@ public class Graph extends Screen{
         
         
         Graph graph = new Graph();
-        graph.start();
+        //graph.start();
         
         graph.setXScale(1);
         graph.setYScale(1);

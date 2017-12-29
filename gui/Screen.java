@@ -36,7 +36,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public static List<Entity> deadEntities;
     
     //SIZE
-    public final int SWIDTH = 300;
+    public final int SWIDTH = 400;
     public final int SHEIGHT = SWIDTH / 16 * 9;
     public int SSCALE = 3;
     public Dimension SSIZE = new Dimension(SWIDTH * SSCALE, SHEIGHT * SSCALE);
@@ -59,7 +59,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         SwingUtilities.invokeLater(new Runnable(){
             @Override
             public void run() {
-                setupGUI();
+                //setupGUI();
             }
         });
     }
@@ -71,13 +71,13 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         SwingUtilities.invokeLater(new Runnable(){
             @Override
             public void run() {
-                setupGUI();
+               // setupGUI();
             }
         });
     }
 
-    @Override
-    public void paintComponent(Graphics g){
+    //@Override
+    public void paintCmomponent(Graphics g){
         super.paintComponent(g);
         Graphics2D g2= (Graphics2D) g;
         
@@ -137,7 +137,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         
     }
     
-    public synchronized void start(){
+    public synchronized void startj(){
         if(mainRunning){
             return;
         }
@@ -262,7 +262,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         SwingUtilities.invokeAndWait(new Runnable(){
             @Override
             public void run(){
-                screen.start();
+                //screen.start();
             }
         });
         

@@ -9,6 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,22 +22,18 @@ import node.Node;
 import node.NodeConnection;
 
 public class Gui extends Screen{
-    //SIZE
-    //public final int SWIDTH = 300;
-    //public final int SHEIGHT = SWIDTH / 16 * 9;
-    //public int SSCALE = 3;
-    //public Dimension SSIZE = new Dimension(SWIDTH * SSCALE, SHEIGHT * SSCALE);
-    
-    public static List<Entity> entities, deadEntities;
-    
     private List<Node> nodes;
     private List<NodeConnection> connections;
     
-    public Gui(){
-        entities = new ArrayList();
-        deadEntities = new ArrayList();
+    public Gui() throws InterruptedException, InvocationTargetException{
         nodes = new ArrayList<>();
         connections = new ArrayList<>();
+        SwingUtilities.invokeAndWait(new Runnable(){
+            @Override
+            public void run(){
+                setupGUI();
+            }
+        });
     }
      private void setupGUI(){
         JFrame frame = new JFrame();
@@ -61,26 +58,18 @@ public class Gui extends Screen{
     }
     
     public void setNodes(List<Node> nodes){
-        this.nodes = nodes;
-        entities.clear();
-        deadEntities.clear();
-        
-        for(Node n: nodes){
-            entities.add(new Bot(this,n.getNodeLink().getX(),n.getNodeLink().getX(),10,10));
-        }
+        this.nodes.clear();
+        this.nodes.addAll(nodes);
         
     }
-    public void addNode(Node node){
+    public synchronized void addNode(Node node){
         if(!nodes.contains(node)){
-            nodes.add(node);
-            entities.add(new Bot(this,node.getNodeLink().getX(),node.getNodeLink().getX(),10,10));
-            
+            nodes.add(node); 
         }
     }
     public void removeNode(Node node){
         if(nodes.contains(node)){
             nodes.remove(node);
-            deadEntities.add(new Bot(this,node.getNodeLink().getX(),node.getNodeLink().getX(),10,10));
         }
     }
     public void setConnections(List<NodeConnection> connections){
@@ -97,27 +86,38 @@ public class Gui extends Screen{
         }
     }
     
+    
     @Override
-    public synchronized void paintComponent(Graphics g){
-        //super.paintComponent(g);
+    public void paintComponent(Graphics g){
+        super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g;
         
         g2.setColor(Color.black);
         g2.fillRect(0, 0, SSIZE.width,SSIZE.height);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         
-        //draw(g2);
-        for(Node n: nodes){
-            n.getNodeLink().drawNodeLink(g2);
-        }
-        for(NodeConnection nc: connections){
-            nc.drawNodeConnection(g2);
-        }
+        nodedraw(g2);
+        connectiondraw(g2);
         repaint();
     }
     
-    private void draw(Graphics2D g2){
+    private synchronized void nodedraw(Graphics2D g2){
         //game draws
-        
+        Iterator nIter = nodes.iterator();
+        while(nIter.hasNext()){
+            Node node = (Node) nIter.next();
+            
+            node.getNodeLink().drawNodeLink(g2);
+        }
     }
+    private synchronized void connectiondraw(Graphics2D g2){
+        //game draws
+        Iterator ncIter = connections.iterator();
+        while(ncIter.hasNext()){
+            NodeConnection nc = (NodeConnection) ncIter.next();
+            
+            nc.drawNodeConnection(g2);
+        }
+    }
+    
 }
