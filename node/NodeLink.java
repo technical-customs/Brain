@@ -150,11 +150,13 @@ public class NodeLink {
         }).start();
         try {
             latch.await();
-            System.out.println("NODE BATTLE RESULT: " + bool[0]);
+            Thread.sleep(100);
+            //System.out.println("NODE BATTLE RESULT: " + bool[0]);
             return bool[0];
         } catch (InterruptedException ex) {
             return false;
         }
+        
     }
     
     private void fightInfection(Node node){
@@ -192,12 +194,24 @@ public class NodeLink {
             
             if(nc.getA().equals(n)){
                 if(nc.getA().getOk()){
+                    //nc.setOk(false);
+                    if(nc.getA().getConnection(nc.getB()) != null){
+                        nc.getA().getConnection(nc.getB()).setOk(false);
+                    }else{
+                        nc.getB().getConnection(nc.getA()).setOk(false);
+                    }
+                    
                     nc.setOk(false);
                     nc.getA().setOk(false);
                     nc.getA().infecting = true;
                     
                     boolean b = nodeBattle(nc,nc.getA());
-                   
+                    
+                    if(nc.getA().getConnection(nc.getB()) != null){
+                        nc.getA().getConnection(nc.getB()).setOk(!b);
+                    }else{
+                        nc.getB().getConnection(nc.getA()).setOk(!b);
+                    }
                     nc.setOk(!b);
                     nc.getA().setOk(!b);
                     nc.getA().infecting = false;
@@ -206,12 +220,24 @@ public class NodeLink {
             }
             if(nc.getB().equals(n)){
                 if(nc.getB().getOk()){
+                    //nc.setOk(false);
+                    if(nc.getB().getConnection(nc.getA()) != null){
+                        nc.getB().getConnection(nc.getA()).setOk(false);
+                    }else{
+                        nc.getA().getConnection(nc.getB()).setOk(false);
+                    }
                     
                     nc.setOk(false);
                     nc.getB().setOk(false);
                     nc.getB().infecting = true;
                     
                     boolean b = nodeBattle(nc,nc.getB());
+                    
+                    if(nc.getB().getConnection(nc.getA()) != null){
+                        nc.getB().getConnection(nc.getA()).setOk(!b);
+                    }else{
+                        nc.getA().getConnection(nc.getB()).setOk(!b);
+                    }
                     nc.setOk(!b);
                     nc.getB().setOk(!b);
                     nc.getB().infecting = false;
@@ -224,21 +250,37 @@ public class NodeLink {
     
     
     private Color getNodeColor(){
-            if(!node.infecting && !node.getOk()){
-                //ok = false;
-                return Color.red;
-                //ok = false;
-            }if(!node.getOk() && node.infecting ){
-                //ok = true;
-                return getErrorColor();
-            }else if(node.getOk()){
-                return Color.yellow;
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Color[] color = new Color[1];
+        
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                if(!node.infecting && !node.getOk()){
+                    //ok = false;
+                    color[0] = Color.red;
+                    //ok = false;
+                }if(!node.getOk() && node.infecting ){
+                    //ok = true;
+                    color[0] = Color.red;
+                }else if(node.getOk()){
+                    color[0] = Color.yellow;
+                }
+                latch.countDown();
             }
+        }).start();
+        try {
+            latch.await();
+            
+            nodeColor = color[0];
+        } catch (InterruptedException ex) {
+            
+        }
+        
         return nodeColor;
     }
     private Color tmpC = Color.red;
     private Color getErrorColor(){
-        final Color c = tmpC;
         final CountDownLatch latch = new CountDownLatch(1);
         final Color[] color = new Color[1];
         
@@ -273,7 +315,7 @@ public class NodeLink {
         }
         return tmpC;
     }
-    public void drawNodeLink(Graphics2D graphics){
+    public synchronized void drawNodeLink(Graphics2D graphics){
         
         graphics.setColor(getNodeColor());
         
@@ -282,6 +324,7 @@ public class NodeLink {
         graphics.setFont(new Font(Font.SERIF,0,10));
         graphics.drawString("NODE:"+node.getId(), x, y);
         
+      
     }
     
     

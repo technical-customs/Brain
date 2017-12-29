@@ -36,7 +36,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public static List<Entity> deadEntities;
     
     //SIZE
-    public final int SWIDTH = 400;
+    public final int SWIDTH = 300;
     public final int SHEIGHT = SWIDTH / 16 * 9;
     public int SSCALE = 3;
     public Dimension SSIZE = new Dimension(SWIDTH * SSCALE, SHEIGHT * SSCALE);

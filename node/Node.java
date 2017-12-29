@@ -12,7 +12,7 @@ public class Node<T extends Comparable<T>>{
     * Node for Linked Lists, Search Trees,
     */
     
-    public int diff = new Random().nextInt(80)+20;//difficulty of node easy = 50 , hard = 500
+    public int diff = new Random().nextInt(1)+10;//difficulty of node easy = 50 , hard = 500
     private int weight = new Random().nextInt();
     private T value = null;
     private Node<T> prev = null;
@@ -96,6 +96,14 @@ public class Node<T extends Comparable<T>>{
     
     public List<NodeConnection> getConnections(){
         return connections;
+    }
+    public NodeConnection getConnection(Node node){
+        for(NodeConnection nc: connections){
+            if(nc.checkConnection(this, node)){
+                return nc;
+            }
+        }
+        return null;
     }
     public void addConnection(NodeConnection connection){
         if(!connections.contains(connection)){

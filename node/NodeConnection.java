@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 public class NodeConnection{
     //will make it for many connections or limited amount of nodes
     private Node a, b;
-    private boolean ok;
+    private volatile boolean ok;
     public Color connectionColor = Color.white;
     private int weight;
   
@@ -64,25 +64,38 @@ public class NodeConnection{
     }
         
     
-    private Color getConnectionColor(){
+    private synchronized Color getConnectionColor(){
+        final CountDownLatch latch = new CountDownLatch(1);
+        final Color[] color = new Color[1];
         //if(a != null && b != null){
-        
-            
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
             if(!ok && ( (a.infecting && !a.getOk()) || (b.infecting && !b.getOk()) )){
                 //ok = true;
-                return getErrorColor();
+                //color[0] = getErrorColor();
                 //ok = false;
             }else if(!ok || ( (!a.infecting && !a.getOk()   ) &&  (!b.infecting && !b.getOk()   ) )){
                 //ok = false;
-                return Color.red;
+                //color[0] =  Color.red;
+                //ok = false;
+            }else if(ok){
+                //color[0] =  Color.green;
                 //ok = false;
             }
-            if(ok){
-                return Color.green;
-                //ok = false;
-            }
-            //return (ok) ? Color.green : getErrorColor() ; 
+            
+            color[0] = (ok) ? Color.green : Color.red ;
+            latch.countDown();
         //}
+        }
+        }).start();
+        
+        try {
+            latch.await();
+            connectionColor = color[0];
+        } catch (InterruptedException ex) {
+            Logger.getLogger(NodeConnection.class.getName()).log(Level.SEVERE, null, ex);
+        }
         return connectionColor;
     }
     private Color tmpC = Color.red;
@@ -114,7 +127,7 @@ public class NodeConnection{
         try {
             latch.await();
             tmpC = color[0];
-            Thread.sleep(100);
+            Thread.sleep(10);
             return tmpC;
             
         } catch (InterruptedException ex) {
@@ -125,7 +138,7 @@ public class NodeConnection{
     
     
     
-    public void drawNodeConnection(Graphics2D graphics){
+    public synchronized void drawNodeConnection(Graphics2D graphics){
         
         graphics.setColor(getConnectionColor());
         

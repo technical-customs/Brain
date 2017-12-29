@@ -11,9 +11,9 @@ import node.Node;
 import node.NodeConnection;
 
 class Main {
-    private int numCon = 3; 
+    private int numCon = 2; 
     private int numNodes = 10;
-    private int tries = 2;
+    private int tries = 10;
     
     
     private List<Node> nodes = new ArrayList<>();
@@ -155,32 +155,27 @@ class Main {
             }while(!pass);
             
             try {
-                Thread.sleep((100*sleep)+sleep);
+                //Thread.sleep((100*sleep)+sleep);
             } catch (Exception ex) {}
             
             int is = in.getNodeLink().getInfected().size();
             
             if(numOfInfected != is){
-                in = in.getNodeLink().getInfected().get(in.getNodeLink().getInfected().size()-1); 
+                in = in.getNodeLink().getInfected().get(is-1); 
             }
         }
-        
+        System.out.println("END OF TRIES");
         //break
     }
     
-    public static void main(String[] args) throws InterruptedException{
+    public static void main(String[] args){
         Main main = new Main();
         
         
-        Thread.sleep(1000);
-        Node inf = main.nodes.get(new Random().nextInt(main.numNodes));
+        Node inf = main.nodes.get(0);
         
         //Node inf2 = main.nodes.get(new Random().nextInt(main.numNodes));
         
-       
-        
-        
-        Thread.sleep(1000);
         
         new Thread(new Runnable(){
             @Override
@@ -195,11 +190,6 @@ class Main {
             }
         });
         
-        Thread.sleep(1000);
-        
-        //main.mutateNode(inf2,main.tries);
-        
-        //Thread.sleep(5000);
         new Thread(new Runnable(){
             @Override
             public void run(){
@@ -223,7 +213,7 @@ class Main {
 
 
             }
-        }).start();
+        });
         
         
         

@@ -98,7 +98,7 @@ public class Gui extends Screen{
     }
     
     @Override
-    public void paintComponent(Graphics g){
+    public synchronized void paintComponent(Graphics g){
         //super.paintComponent(g);
         Graphics2D g2 = (Graphics2D)g;
         
@@ -106,18 +106,18 @@ public class Gui extends Screen{
         g2.fillRect(0, 0, SSIZE.width,SSIZE.height);
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         
-        draw(g2);
-        g2.dispose();
-        repaint();
-    }
-    
-    private void draw(Graphics2D g2){
-        //game draws
+        //draw(g2);
         for(Node n: nodes){
             n.getNodeLink().drawNodeLink(g2);
         }
         for(NodeConnection nc: connections){
             nc.drawNodeConnection(g2);
         }
+        repaint();
+    }
+    
+    private void draw(Graphics2D g2){
+        //game draws
+        
     }
 }
